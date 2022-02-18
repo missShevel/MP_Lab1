@@ -61,7 +61,7 @@ int main() {
                     row_length++;
                     goto count_row_length;
                 }
-//                word = "";
+
                 i = 0;
                  read_word:
                 if(row_index < row_length){
@@ -96,15 +96,10 @@ int main() {
                         goto copy_word;
 
                         deletion_end:
-                        word = new_word;
-//                    word = new_word;
                         word_length--;
                     } else {
                         word = store;
                     }
-
-                search_word:
-
 
                     bool to_skip = false;
                         int index = 0;
@@ -158,14 +153,12 @@ int main() {
                             goto add_new;
                         }
                         if(dictionary[count].word == word){
-                            if(dictionary[count].apperances_on_pages != 101){
-                                int x = dictionary[i].apperances_on_pages;
-                                if(x <= 100) {
-                                    dictionary[count].pages[dictionary[count].apperances_on_pages] = page_number;
+                                int x = dictionary[count].apperances_on_pages;
+                                if(x <= 100 and dictionary[count].pages[x - 1] != page_number) {
+                                    dictionary[count].pages[x] = page_number;
                                     dictionary[count].apperances_on_pages++;
                                 }
                                 goto adding_end;
-                            }
                         } else {
                             count++;
                             goto search_through_dictionary;
