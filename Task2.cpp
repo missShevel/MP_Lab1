@@ -11,13 +11,13 @@ struct WORD_PAGES {
 };
 
 int main() {
-    string file_name = "/Users/user/CLionProjects/MPP_Lab1/text.txt";
+    string file_name = "/Users/user/CLionProjects/MPP_Lab1/book.txt";
     string skip[] =
             {"the", "for", "in", "into", "onto", "as",
              "are", "but", "is", "on",
              "a", "an", "of", "to", "at",
              "by", "and", "not", "or"};
-    int SIZE_OF_SKIP = 18;
+    int SIZE_OF_SKIP = 19;
     int ROWS_ON_PAGE = 45;
     int words_count = 0;
     string row;
@@ -28,7 +28,7 @@ int main() {
     int rows_number;
     int row_length;
     int page_number = 0;
-    int words_in_dictionary = 50;
+    int words_in_dictionary = 5;
     WORD_PAGES* dictionary = new WORD_PAGES [words_in_dictionary];
 
     int i = 0;
@@ -61,18 +61,23 @@ int main() {
                     row_length++;
                     goto count_row_length;
                 }
-                word = "";
+//                word = "";
                 i = 0;
                  read_word:
-                if(row_index  < row_length){
+                if(row_index < row_length){
+                    if(!((row[row_index] >= 'A' and row[row_index] <= 'Z')
+                         or (row[row_index] >= 'a' and row[row_index] <= 'z'))){
+                        row_index++;
+                        goto read_word;
+                    }
                     if(row[row_index+i] == space or row[row_index+i] == '\0'){
                         goto read_word_end;
-                    } else {
+                    }
                         store += row[row_index+i];
                         i++;
 
                         goto read_word;
-                    }
+
                     read_word_end:
                     int word_length = i;
                     row_index += i;
@@ -108,9 +113,10 @@ int main() {
                                 goto check_letters_end;
                             }
 
-                            if( !(word[index] >= 'A' and word[index] <= 'Z')
-                                or (word[index] >= 'a' and word[index] <= 'z')) {
-//                                to_skip = true;
+                            if( word_length == 0 || !((word[index] >= 'A' and word[index] <= 'Z')
+                                or (word[index] >= 'a' and word[index] <= 'z'))) {
+                                to_skip = true;
+                                goto add_to_dictionary;
                             }
 
                         index++;
@@ -153,8 +159,11 @@ int main() {
                         }
                         if(dictionary[count].word == word){
                             if(dictionary[count].apperances_on_pages != 101){
-                                dictionary[count].pages[dictionary[count].apperances_on_pages] = page_number;
-                                dictionary[count].apperances_on_pages++;
+                                int x = dictionary[i].apperances_on_pages;
+                                if(x <= 100) {
+                                    dictionary[count].pages[dictionary[count].apperances_on_pages] = page_number;
+                                    dictionary[count].apperances_on_pages++;
+                                }
                                 goto adding_end;
                             }
                         } else {
@@ -164,20 +173,29 @@ int main() {
 
                         add_new:
                         if(words_count == words_in_dictionary){
-                            WORD_PAGES* dictionary_extended = new WORD_PAGES[words_in_dictionary*2];
+                            WORD_PAGES* dictionary_copy = new WORD_PAGES[words_in_dictionary*2];
                             int s = 0;
                             copy_words:
                             if(s >= words_in_dictionary){
                                 goto end_copy;
                             }
-                            dictionary_extended[s] = dictionary[s];
+                            dictionary_copy[s] = dictionary[s];
                             s++;
                             goto copy_words;
                             end_copy:
                             words_in_dictionary *= 2;
-                            dictionary = dictionary_extended;
-                        }
+                            dictionary = new WORD_PAGES[words_in_dictionary];
 
+                            s = 0;
+                            add_to_ex_d:
+                            if(s >= words_in_dictionary){
+                                goto new_word;
+                            }
+                            dictionary[s] = dictionary_copy[s];
+                            s++;
+                            goto add_to_ex_d;
+                        }
+                        new_word:
                         dictionary[words_count].word = word;
                         dictionary[words_count].pages[0] = page_number;
                         dictionary[words_count].apperances_on_pages = 1;
@@ -198,15 +216,61 @@ int main() {
             page_scanner_end:
     goto book_scanner;
 
-
-
     sort:
-    output:
-    if (i < words_in_dictionary) {
-        cout << dictionary[i].word << endl;
-        i++;
-        goto output;
+    i = 0;
+    int j;
+    outer_loop:
+    if (i >= words_count - 1){
+        goto outer_loop_end;
     }
+    j = i + 1;
+    inner_loop:
+    if(j >= words_count){
+        goto inner_loop_end;
+    }
+    if(dictionary[i].word > dictionary[j].word){
+        WORD_PAGES temporary = dictionary[i];
+        dictionary[i] = dictionary[j];
+        dictionary[j] = temporary;
+    }
+    j++;
+    goto inner_loop;
+
+    inner_loop_end:
+    i++;
+goto outer_loop;
+
+outer_loop_end:
+    i = 0;
+
+    ofstream result("/Users/user/CLionProjects/MPP_Lab1/result.txt");
+    output:
+    if (i >= words_count) {
+        goto output_end;
+    }
+    if(dictionary[i].apperances_on_pages < 101){
+        result << dictionary[i].word << " - ";
+    }
+
+    j = 0;
+    print_page_numbers:
+    if (j >= dictionary[i].apperances_on_pages){
+        goto print_page_numbers_end;
+    }
+    result << dictionary[i].pages[j]<< ", ";
+
+    j++;
+    goto print_page_numbers;
+
+    print_page_numbers_end:
+    result << endl;
+
+    i++;
+    goto output;
+
+    output_end:
+
+    result.close();
     book.close();
 
     return 0;
